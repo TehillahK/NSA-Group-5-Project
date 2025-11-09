@@ -40,7 +40,7 @@ def main():
                 data_api.add_income(new_income)
                 new_balance = get_current_balance(data_api.incomes, data_api.transactions)
                 setattr(data_api, "current_balance",new_balance)
-                #user_info["currentBalance"] = new_balance
+                print("\nIncome added successfully!\n")
                 print(f"Current balance: ${new_balance}\n\n")
             elif menu_choice == 2:
                 print("\n\n\n=== Add Expense ===")
@@ -53,7 +53,7 @@ def main():
                 setattr(data_api, "current_balance",new_balance)
         
                 remaining_budget = get_remaining_budget(new_expense.category,data_api.targets,data_api.transactions)
-                print(f"Remaining {categories[new_expense.category - 1]} Budget:{remaining_budget}")
+                print(f"Remaining {categories[new_expense.category - 1]} Budget:{remaining_budget}\n")
             elif menu_choice == 3:
                 print("\n\n\n=== View Transactions ===")
                 view_transactions(data_api.incomes,data_api.transactions)
@@ -79,11 +79,14 @@ def main():
             else:
                 data_api.save_data()
         except ValueError as e:
-            print(e)
+            print(f"{e}\n")
+            input("Press enter to continue")
+            print("\n===Restarting Program===\n\n")
         except Exception as e:
-            print(e)
-
-        print("Thank you for using this program.")
+            print(f"{e}\n")
+            input("Press enter to continue")
+            print("\n===Restarting Program===\n\n")
+    print("Thank you for using this program.")
 
 
 
@@ -136,22 +139,36 @@ def validate_menu_choice(menu_choice):
 def add_expense():
     try:
         result = None
+         # Get category input from user
         category = int(input("Enter category (1-5): "))
+
+        # Check if category has valid values
+        if category < 1 or category > 5:
+            raise ValueError("Category must be between 1 and 5.")
+
+        # Get description  input from user
         description = input("Enter expense description: ")
+
+        # Check description length
+        if len(description.strip()) < 3:
+            raise ValueError("Description must be at least 3 characters long.")
+        
+        if description.isnumeric():
+            raise ValueError("Description should not be a number")
+
+        # Get amount input from user
         amount = float(input("Enter amount: "))
 
-        # TODO: appropriate error checking for category ie make sure category is 1-5
-        # TODO: Do error checking for description make sure the length is atleast 3
-        # TODO: Do error checking for amount make sure its none negative and not 0
-        # TODO: Raise appropriate Value Error or exception for each
+        # check if amount is a none negative number or 0 
+        if amount <= 0:
+            raise ValueError("Amount must be greater than 0.")
 
         result = Transaction(description = description, amount = amount, category = category)
 
         return result
-    except ValueError:
-        # TODO: Put appropriate print message and value error arguement
-        print("")
-        raise ValueError("")
+    except ValueError as e:
+        print(f"Invalid input: {e}")
+        raise ValueError("Failed to add expense due to invalid input.")
     except Exception as error:
         print(error)
         raise Exception(error)
@@ -166,23 +183,31 @@ def add_income():
     result = None
     try:
         description = input("Enter income description: ")
-        amount = float(input("Enter amount: "))
-       
-        # TODO: Do error checking such as making sure description is atleast length of 3
-        # Raise error if it is less than 3
-        # TODO: Do error checking and make sure amount is not a negative number
-        # Raise error if it is
+        # Check description length
+        if len(description.strip()) < 3:
+            raise ValueError("Description must be at least 3 characters long.")
         
+        if description.isnumeric():
+            raise ValueError("Description should not be a number")
+
+
+        amount = float(input("Enter amount: "))
+
+        # check if amount is a none negative number or 0 
+        if amount <= 0:
+            raise ValueError("Amount must be greater than 0.")
+        
+
         # zero will be set as default value of category for transaction
         result = Transaction(description, amount)
         return result
-    except ValueError:
-        print("")
-    except Exception as e:
-        # TODO: Remove pass line and raise an error and pass e as an arguement
-        pass
-    finally:
-        print("Income added successfully!")
+    except ValueError as error:
+        print(f"Invalid input: {error}")
+        raise ValueError("Failed to add income due to invalid input.")
+    except Exception as error:
+        print(error)
+        raise Exception(error)
+    
         
 
 
@@ -298,13 +323,13 @@ def view_budget_summary(incomes, transactions, categories, targets, current_bala
         category = categories[i - 1]
         budget_target = targets[i - 1]
         category_spent = sum([j.amount for j in transactions if j.category == i])
-        budget_used = (category_spent/budget_target) * 100
+        budget_used = round((category_spent/budget_target) * 100,2)
         print(f"{category}: ${category_spent} / ${budget_target}   ({budget_used}% used)")
 
     print(f"\nTotal Expenses:{total_expenses}\nCurrent Balance:{current_balance}\nTotal Budget:{total_budget}\nOver/Under budget:{difference} ", end="")
 
     if under_budget:
-        print("(Under Budget)")
+        print("(Under Budget)\n\n")
     else:
         print("(Over budget)\n\n")
 
@@ -320,7 +345,7 @@ def generate_report(incomes, transactions, categories, targets):
     total_income = sum([i.amount for i in incomes])
     total_expenses = sum([i.amount for i in transactions])
     net_income = total_income - total_expenses
-    savings_rating = (net_income/total_income) * 100
+    savings_rating = round((net_income/total_income) * 100,2)
 
     total_spending = {}
 
@@ -331,38 +356,30 @@ def generate_report(incomes, transactions, categories, targets):
         category = categories[i - 1]
         budget_target = targets[i - 1]
         category_spent = sum([j.amount for j in transactions if j.category == i])
-        budget_used = (category_spent/budget_target) * 100
+        budget_used = round((category_spent/budget_target) * 100,2)
         category_budget_used[category]= budget_used
 
     for i in range(1,n):
         category = categories[i - 1]
         total_spending[category] = sum([j.amount for j in transactions if j.category == i])
 
-    
-    # doing nested looping in a list comprehension to produce a list of sorted dictinary, sorted by value
-    categories_totals_list = [{j: total_spending[j]} for i in sorted(total_spending.values(), reverse=True)
-    for j in total_spending
-    if total_spending[j] == i and total_spending[j] > 0
-    ]
+    categories_totals_list = sorted(total_spending.items(),key = get_expense_val, reverse = True)[0:3]
 
-    # a list of dicts that are over 80%
+   
     over_eighty_percent_usage = [{i:category_budget_used[i] } for i in category_budget_used if category_budget_used[i]>80]
 
     print(f"SUMMARY:\n- Total Income: ${total_income}\n- Total Expenses: ${total_expenses}\n", end="")
     print(f"- Net Income: ${net_income}\n- Savings Rate: {savings_rating}%\n\n")
 
     print(f"TOP SPENDING CATEGORIES:")
-    #print(categories_totals_list)
+   
 
     num = 1
-    for spending_category in categories_totals_list:
-        for category in spending_category:
-            percent_expense = (spending_category[category]/total_expenses) * 100
-            print(f"{num}. {category}: ${spending_category[category]}({percent_expense}%)")
-            num += 1
-
-       
    
+    for spending_category in categories_totals_list:
+        percent_expense = round((spending_category[1]/total_expenses) * 100,2)
+        print(f"{num}. {spending_category[0]}: ${spending_category[1]}({percent_expense}%)")
+        num += 1
 
     print(f"\nBudget Status:\n- Categories over 80%: ", end = "")
 
@@ -374,8 +391,19 @@ def generate_report(incomes, transactions, categories, targets):
 
     print("\n\n---End of Report---\n\n")
 
-    
 
+
+"""
+    get_expense_val
+    used as key in sorting dictionary so that we can sort the values by value
+"""    
+def get_expense_val(tuple):
+    return tuple[1]
+
+
+
+
+    
 
 
 
