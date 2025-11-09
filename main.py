@@ -65,11 +65,18 @@ def main():
                 print("\n\n\n=== Set Budget ===")
                 budget_targets = set_budget()
                 setattr(data_api,"targets",budget_targets)
-                #user_info["targets"] = budget_targets 
             elif menu_choice == 5:
+                # check if user has set budget
+                if len(data_api.targets) == 0:
+                    raise Exception("\nTo view this option menu option, you need to set your budget first.")
+                
                 print("\n\n\n=== Budget Summary ===")
                 view_budget_summary(data_api.incomes,data_api.transactions,categories, data_api.targets, data_api.current_balance)
             elif menu_choice == 6:
+                # check if user has set a budget
+                if len(data_api.targets) == 0:
+                    raise Exception("\nTo view this option menu option, you need to set your budget first.")
+                
                 print("\n\n\n=== Monthly Report ===")
                 generate_report(data_api.incomes,data_api.transactions,categories, data_api.targets)
             elif menu_choice == 7:
