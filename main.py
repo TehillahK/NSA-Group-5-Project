@@ -51,7 +51,11 @@ def main():
                 # update balance
                 new_balance = get_current_balance(data_api.incomes, data_api.transactions)
                 setattr(data_api, "current_balance",new_balance)
-        
+
+                # if budget targets have not been set, we save the data and make user set budget
+                if len(data_api.targets) == 0:
+                    raise Exception("We have saved your transaction but please Set your budget in Main menu.")
+                
                 remaining_budget = get_remaining_budget(new_expense.category,data_api.targets,data_api.transactions)
                 print(f"Remaining {categories[new_expense.category - 1]} Budget:{remaining_budget}\n")
             elif menu_choice == 3:
