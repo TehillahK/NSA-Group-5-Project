@@ -168,7 +168,7 @@ def add_expense():
             raise ValueError("Description should not be a number")
 
         # Get amount input from user
-        amount = float(input("Enter amount: "))
+        amount = float(input("Enter amount: $"))
 
         # check if amount is a none negative number or 0 
         if amount <= 0:
@@ -202,7 +202,7 @@ def add_income():
             raise ValueError("Description should not be a number")
 
 
-        amount = float(input("Enter amount: "))
+        amount = float(input("Enter amount: $"))
 
         # check if amount is a none negative number or 0 
         if amount <= 0:
@@ -280,7 +280,7 @@ def set_budget():
         for category in categories:
 
             # waits for user input and it takes in as a float
-            user_input = float(input(f"Set {category} budget: "))
+            user_input = float(input(f"Set {category} budget: $"))
 
             # if user input is 0 or less than 0 is not a valid input for budget target
             if  user_input <= 0:
